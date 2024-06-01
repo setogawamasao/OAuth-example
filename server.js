@@ -13,6 +13,7 @@ app.get("/oauth-start", async function (req, res, next) {
   const state = "xyz";
   const scope = "https://www.googleapis.com/auth/photoslibrary.readonly";
   const redirectUri = "http://127.0.0.1:3000/callback";
+
   // パラメータくみ上げ
   const authReqUrl = `${baseUrl}?response_type=${responseType}&client_id=${clientId}&state=${state}&scope=${scope}&redirect_uri=${redirectUri}`;
   res.redirect(authReqUrl);
