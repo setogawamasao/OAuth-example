@@ -15,34 +15,12 @@ app.get("/oauth-start", async function (req, res, next) {
   // 認可リクエストパラメータ
   const baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
   const responseType = "code";
-  const state = "xyz";
   const scope = "https://www.googleapis.com/auth/photoslibrary.readonly";
   const redirectUri = "http://127.0.0.1:3000/callback";
+  const state = randomUUID();
 
-  // ...
-
-  app.get("/oauth-start", async function (req, res, next) {
-    console.log("uuid check");
-    // 認可リクエストパラメータ
-    const baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
-    const responseType = "code";
-    const state = "xyz";
-    const scope = "https://www.googleapis.com/auth/photoslibrary.readonly";
-    const redirectUri = "http://127.0.0.1:3000/callback";
-
-    console.log("uuid check");
-    const uuid = randomUUID();
-    console.log("uuid", uuid);
-    req.session.state = uuid;
-
-    // console.log(req.session);
-    // console.log(req.session.id);
-    // パラメータくみ上げ
-    const authReqUrl = `${baseUrl}?response_type=${responseType}&client_id=${clientId}&state=${state}&scope=${scope}&redirect_uri=${redirectUri}`;
-    res.redirect(authReqUrl);
-  });
-
-  // ...
+  // sessionにstateを保存
+  req.session.state = state;
   console.log(req.session);
   console.log(req.session.id);
 
