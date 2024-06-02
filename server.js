@@ -28,7 +28,7 @@ app.get("/oauth-start", async function (req, res) {
     code_challenge: codeChallenge,
   };
 
-  // sessionにstateを保存
+  // セッションに保存
   req.session.state = queryObject.state;
   req.session.codeVerifier = codeVerifier;
   console.log(req.session);
