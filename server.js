@@ -1,10 +1,14 @@
 import express from "express";
+import session from "express-session";
 import { clientId, clientSecret } from "./config-local.js";
 const app = express();
 
-const server = app.listen(3000, function () {
-  console.log("goto http://localhost:3000/oauth-start ");
-});
+app.use(
+  session({
+    secret: "input your secret string", // 署名に使用するシークレット文字列
+    cookie: { maxAge: 100000 }, // 10秒間リクエストがなければセッションデータは削除されます。
+  })
+);
 
 app.get("/oauth-start", async function (req, res, next) {
   // 認可リクエストパラメータ
@@ -14,14 +18,21 @@ app.get("/oauth-start", async function (req, res, next) {
   const scope = "https://www.googleapis.com/auth/photoslibrary.readonly";
   const redirectUri = "http://127.0.0.1:3000/callback";
 
+  req.session.state = "xyz";
+  console.log(req.session);
+  console.log(req.session.id);
+
   // パラメータくみ上げ
   const authReqUrl = `${baseUrl}?response_type=${responseType}&client_id=${clientId}&state=${state}&scope=${scope}&redirect_uri=${redirectUri}`;
   res.redirect(authReqUrl);
 });
 
 app.get("/callback", async function (req, res, next) {
+  console.log(req.session);
+  console.log(req.session.id);
   console.log(req.url);
   console.log(req.query.code);
+  if (req.query.state !== req.session.state) throw new Error("Invalid state.");
 
   // トークンリクエストパラメータ
   const tokenRecBaseUrl = "https://www.googleapis.com/oauth2/v4/token";
@@ -65,4 +76,8 @@ app.get("/callback", async function (req, res, next) {
   const resourceData = await resourceResponse.json();
   console.log(resourceData);
   res.json(resourceData);
+});
+
+const server = app.listen(3000, function () {
+  console.log("goto http://127.0.0.1:3000/oauth-start ");
 });
