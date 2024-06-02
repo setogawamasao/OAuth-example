@@ -1,5 +1,6 @@
 import express from "express";
 import session from "express-session";
+import { randomUUID } from "crypto";
 import { clientId, clientSecret } from "./config-local.js";
 const app = express();
 
@@ -18,7 +19,30 @@ app.get("/oauth-start", async function (req, res, next) {
   const scope = "https://www.googleapis.com/auth/photoslibrary.readonly";
   const redirectUri = "http://127.0.0.1:3000/callback";
 
-  req.session.state = "xyz";
+  // ...
+
+  app.get("/oauth-start", async function (req, res, next) {
+    console.log("uuid check");
+    // 認可リクエストパラメータ
+    const baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+    const responseType = "code";
+    const state = "xyz";
+    const scope = "https://www.googleapis.com/auth/photoslibrary.readonly";
+    const redirectUri = "http://127.0.0.1:3000/callback";
+
+    console.log("uuid check");
+    const uuid = randomUUID();
+    console.log("uuid", uuid);
+    req.session.state = uuid;
+
+    // console.log(req.session);
+    // console.log(req.session.id);
+    // パラメータくみ上げ
+    const authReqUrl = `${baseUrl}?response_type=${responseType}&client_id=${clientId}&state=${state}&scope=${scope}&redirect_uri=${redirectUri}`;
+    res.redirect(authReqUrl);
+  });
+
+  // ...
   console.log(req.session);
   console.log(req.session.id);
 
@@ -49,9 +73,7 @@ app.get("/callback", async function (req, res, next) {
     redirect_uri: redirectUri,
     code: code,
   };
-  const body = Object.keys(bodyObject)
-    .map((key) => key + "=" + encodeURIComponent(bodyObject[key]))
-    .join("&");
+  const body = new URLSearchParams(bodyObject).toString();
   const headers = {
     Accept: "application/json",
     "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
