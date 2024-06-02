@@ -6,8 +6,8 @@ const app = express();
 
 app.use(
   session({
-    secret: "input your secret string", // 署名に使用するシークレット文字列
-    cookie: { maxAge: 100000 }, // 10秒間リクエストがなければセッションデータは削除されます。
+    secret: "session secret",
+    cookie: { maxAge: 100000 },
   })
 );
 
