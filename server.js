@@ -7,7 +7,7 @@ const app = express();
 app.use(
   session({
     secret: "session secret",
-    cookie: { maxAge: 100000 },
+    cookie: { maxAge: 10 * 1000 },
   })
 );
 
