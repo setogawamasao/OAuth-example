@@ -20,6 +20,8 @@ app.get("/oauth-start", async function (req, res, next) {
     state: randomUUID(),
     scope: "https://www.googleapis.com/auth/photoslibrary.readonly",
     redirect_uri: "http://127.0.0.1:3000/callback",
+    code_challenge_method: "S256",
+    code_challenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
   };
 
   // sessionにstateを保存
@@ -49,6 +51,7 @@ app.get("/callback", async function (req, res, next) {
     grant_type: "authorization_code",
     redirect_uri: "http://127.0.0.1:3000/callback",
     code: req.query.code,
+    code_verifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
   };
   const body = new URLSearchParams(bodyObject).toString();
   const headers = {
