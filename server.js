@@ -24,8 +24,18 @@ app.get("/oauth-start", async function (req, res, next) {
   console.log(req.session);
   console.log(req.session.id);
 
+  // トークンリクエスト準備
+  const queryObject = {
+    response_type: responseType,
+    client_id: clientId,
+    state: state,
+    scope: scope,
+    redirect_uri: redirectUri,
+  };
+  const query = new URLSearchParams(queryObject).toString();
+
   // パラメータくみ上げ
-  const authReqUrl = `${baseUrl}?response_type=${responseType}&client_id=${clientId}&state=${state}&scope=${scope}&redirect_uri=${redirectUri}`;
+  const authReqUrl = `${baseUrl}?${query}`;
   res.redirect(authReqUrl);
 });
 
