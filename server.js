@@ -1,6 +1,8 @@
 import express from "express";
 import session from "express-session";
 import { randomUUID } from "crypto";
+import base64url from "base64url";
+import sha256 from "js-sha256";
 import { clientId, clientSecret } from "./config-local.js";
 const app = express();
 
@@ -11,9 +13,11 @@ app.use(
   })
 );
 
-app.get("/oauth-start", async function (req, res, next) {
+app.get("/oauth-start", async function (req, res) {
   // 認可リクエストパラメータ
   const baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+  const codeVerifier = getCodeVerifier();
+  const codeChallenge = getCodeChallenge(codeVerifier);
   const queryObject = {
     response_type: "code",
     client_id: clientId,
@@ -21,11 +25,12 @@ app.get("/oauth-start", async function (req, res, next) {
     scope: "https://www.googleapis.com/auth/photoslibrary.readonly",
     redirect_uri: "http://127.0.0.1:3000/callback",
     code_challenge_method: "S256",
-    code_challenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+    code_challenge: codeChallenge,
   };
 
   // sessionにstateを保存
   req.session.state = queryObject.state;
+  req.session.codeVerifier = codeVerifier;
   console.log(req.session);
   console.log(req.session.id);
 
@@ -35,7 +40,7 @@ app.get("/oauth-start", async function (req, res, next) {
   res.redirect(authReqUrl);
 });
 
-app.get("/callback", async function (req, res, next) {
+app.get("/callback", async function (req, res) {
   console.log(req.url);
   console.log(req.session);
   console.log(req.session.id);
@@ -51,7 +56,7 @@ app.get("/callback", async function (req, res, next) {
     grant_type: "authorization_code",
     redirect_uri: "http://127.0.0.1:3000/callback",
     code: req.query.code,
-    code_verifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+    code_verifier: req.session.codeVerifier,
   };
   const body = new URLSearchParams(bodyObject).toString();
   const headers = {
@@ -80,6 +85,20 @@ app.get("/callback", async function (req, res, next) {
   res.json(resourceData);
 });
 
-const server = app.listen(3000, function () {
+app.listen(3000, function () {
   console.log("goto http://127.0.0.1:3000/oauth-start ");
 });
+
+const getCodeVerifier = () => {
+  let buf = Buffer.alloc(32);
+  for (let i = 0; i < buf.length; i++) {
+    const random_num = Math.floor(Math.random() * 256);
+    buf.writeUInt8(random_num, i);
+  }
+  return base64url(buf);
+};
+
+const getCodeChallenge = (str) => {
+  const hash = sha256.arrayBuffer(str);
+  return base64url(hash);
+};

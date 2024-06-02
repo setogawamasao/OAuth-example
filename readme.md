@@ -15,3 +15,5 @@ https://stackoverflow.com/questions/55825921/nodejs-sessionid-is-changing-after-
 ### 参考
 
 https://qiita.com/yuta-katayama-23/items/020169b66d1abe242b37#const-state--generatorsstate
+
+https://yaasita.github.io/2019/04/29/pkce/
