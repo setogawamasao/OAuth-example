@@ -1,3 +1,4 @@
+// 認可コードフロー＋PKCEの実装
 import express from "express";
 import session from "express-session";
 import { randomUUID } from "crypto";

@@ -1,0 +1,43 @@
+// インプリシットグラントフローの実装
+import express from "express";
+import session from "express-session";
+import { randomUUID } from "crypto";
+import base64url from "base64url";
+import sha256 from "js-sha256";
+import { clientId, clientSecret } from "./config-local.js";
+const app = express();
+
+// app.use(
+//   session({
+//     secret: "session secret",
+//     cookie: { maxAge: 10 * 1000 },
+//   })
+// );
+
+app.get("/oauth-start", async function (req, res) {
+  // 認可リクエストパラメータ
+  const baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+  const queryObject = {
+    response_type: "token",
+    client_id: clientId,
+    state: randomUUID(),
+    scope: "https://www.googleapis.com/auth/photoslibrary.readonly",
+    redirect_uri: "http://127.0.0.1:3000/callback",
+  };
+
+  // パラメータくみ上げ
+  const query = new URLSearchParams(queryObject).toString();
+  const authReqUrl = `${baseUrl}?${query}`;
+  res.redirect(authReqUrl);
+});
+
+app.get("/callback", async function (req, res) {
+  console.log("url", req.url); // WEBサーバーにフラグメントは送付されない
+  console.log("access token", req.query.access_token);
+
+  res.json(req.url);
+});
+
+app.listen(3000, function () {
+  console.log("goto http://127.0.0.1:3000/oauth-start ");
+});
