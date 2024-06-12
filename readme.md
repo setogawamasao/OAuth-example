@@ -1,39 +1,74 @@
 # 「雰囲気で OAuth2.0 を使っているエンジニアが OAuth2.0 を整理して、手を動かしながら学べる本」のチュートリアルを Express で実装
 
-### 「雰囲気で OAuth2.0 を使っているエンジニアが OAuth2.0 を整理して、手を動かしながら学べる本」
+## Set Up
 
-https://authya.booth.pm/items/1550861
+1. 下記コマンドを実行
 
-### google cloud console
+```
+npm install nodemon
+npm install
+```
 
-https://console.cloud.google.com/
+2. google cloud console からクライアントを設定
+   https://console.cloud.google.com/
+3. config.js に google cloud API から取得した clientId と clientSecret を設定する。
 
-### express は localhost と 127.0.0.1 を別ドメインとして扱う
+## 起動
 
-https://stackoverflow.com/questions/55825921/nodejs-sessionid-is-changing-after-redirect-how-to-keep-user-session-data-per
+1. 下記コマンドを実行
 
-### 参考
+```
+start authorization code
+```
 
-https://qiita.com/yuta-katayama-23/items/020169b66d1abe242b37#const-state--generatorsstate
+2. ブラウザから下記 URL に接続
+   http://127.0.0.1:3000/oauth-start
 
-https://yaasita.github.io/2019/04/29/pkce/
-
-### OAuth の認可コードフローのシーケンス図
+## OAuth の認可コードフロー + PKCE のシーケンス図
 
 ```mermaid
 sequenceDiagram
-  participant User
-  participant Client
-  participant AuthorizationServer
-  participant ResourceServer
+  autonumber
+  participant ro as リソースオーナー<br>ブラウザ
+  participant cl as クライアント<br>Express
+  participant as as 認可<br>Google Cloud API
+  participant rs as リソースサーバー<br>Google Picture
 
-  User->Client: 1. リクエストを送信
-  Client->AuthorizationServer: 2. 認可リクエストを送信
-  AuthorizationServer->User: 3. ユーザーに認可を求める
-  User->AuthorizationServer: 4. 認可を与える
-  AuthorizationServer->Client: 5. 認可コードを返す
-  Client->AuthorizationServer: 6. アクセストークンを要求
-  AuthorizationServer->Client: 7. アクセストークンを返す
-  Client->ResourceServer: 8. リソースを要求
-  ResourceServer-->Client: 9. リソースを返す
+  ro->>cl: OAuth開始[http://127.0.0.1:3000/oauth-start]
+  Note over cl: stateの文字列生成してセッションに保存<br/>code verifier生成してセッションに保存<br/>code verifierをcode challenge変換
+  cl->>+ro: 認可リクエスト(state,code challenge)
+  ro->>-as: リダイレクト[https://accounts.google.com/o/oauth2/v2/auth](state,code challenge)
+  Note over as: code challengeを保存
+
+  rect rgb(191, 223, 255)
+  note right of ro: ユーザー認証処理
+  as->>ro: 認証画面
+  ro->>as: 認証情報入力
+  as->>ro: 権限移譲確認画面
+  ro->>as: 委譲の同意
+  end
+
+  as->>+ro: 認可レスポンス(認可コード)
+  ro->>-cl: リダイレクト[http://127.0.0.1:3000/callback](認可コード,state)
+  Note over cl: state検証(クエリvsセッション)<br/>セッションに保存されたcode verifierを取得
+  cl->>as: トークンリクエスト[https://www.googleapis.com/oauth2/v4/token](認可コード,state,code verifier)
+  Note over as: code verifierとcode challengeを検証
+  as->>cl: トークンレスポンス(アクセストークン)
+  cl->>rs: リソースリクエスト[https://photoslibrary.googleapis.com/v1/albums](アクセストークン)
+  rs->>cl: リソースレスポンス
+  cl->>ro: リソース情報
+
 ```
+
+## 参考ブログ
+
+1. エクスプレスでセッションの利用
+   https://qiita.com/yuta-katayama-23/items/020169b66d1abe242b37#const-state--generatorsstate
+2. PKCE の code_challenge と code_challenge の生成
+   https://yaasita.github.io/2019/04/29/pkce/
+3. Express は localhost と 127.0.0.1 を別ドメインとして扱う
+   https://stackoverflow.com/questions/55825921/nodejs-sessionid-is-changing-after-redirect-how-to-keep-user-session-data-per
+4. 雰囲気で OAuth2.0 を使っているエンジニアが OAuth2.0 を整理して、手を動かしながら学べる本」
+   https://authya.booth.pm/items/1550861
+5. Marmaid 起動(シーケンス図)
+   https://mermaid.js.org/syntax/sequenceDiagram.html

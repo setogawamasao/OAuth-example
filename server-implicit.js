@@ -1,18 +1,8 @@
 // インプリシットグラントフローの実装
 import express from "express";
-import session from "express-session";
 import { randomUUID } from "crypto";
-import base64url from "base64url";
-import sha256 from "js-sha256";
 import { clientId, clientSecret } from "./config-local.js";
 const app = express();
-
-// app.use(
-//   session({
-//     secret: "session secret",
-//     cookie: { maxAge: 10 * 1000 },
-//   })
-// );
 
 app.get("/oauth-start", async function (req, res) {
   // 認可リクエストパラメータ
