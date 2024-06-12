@@ -4,7 +4,7 @@ import session from "express-session";
 import { randomUUID } from "crypto";
 import base64url from "base64url";
 import sha256 from "js-sha256";
-import { clientId, clientSecret } from "./config-local.js";
+import { clientId, clientSecret } from "./config.js";
 const app = express();
 
 app.use(
